@@ -101,15 +101,16 @@ class WalletService
         ];
 
         try {
-            $ch = curl_init($rpcUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-            
-            $response = curl_exec($ch);
-            curl_close($ch);
+            $options = [
+                'http' => [
+                    'header'  => "Content-Type: application/json\r\n",
+                    'method'  => 'POST',
+                    'content' => json_encode($payload),
+                    'timeout' => 5
+                ]
+            ];
+            $context = stream_context_create($options);
+            $response = @file_get_contents($rpcUrl, false, $context);
 
             if (!$response) {
                 return 0.0;
@@ -122,11 +123,14 @@ class WalletService
                     return 0.0;
                 }
                 
-                if (function_exists('gmp_init')) {
-                    $decVal = gmp_strval(gmp_init($hexVal, 16));
-                } else {
-                    $decVal = hexdec($hexVal);
+                // Pure PHP hex-to-dec using bcmath
+                $decVal = '0';
+                $len = strlen($hexVal);
+                for ($i = 0; $i < $len; $i++) {
+                    $val = hexdec($hexVal[$i]);
+                    $decVal = bcadd(bcmul($decVal, '16', 0), (string) $val, 0);
                 }
+
                 return (float) ($decVal / 1000000);
             }
         } catch (\Throwable $e) {
