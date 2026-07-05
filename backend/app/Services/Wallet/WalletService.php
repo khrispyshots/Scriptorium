@@ -57,11 +57,83 @@ class WalletService
 
     public function balanceFor(Wallet $wallet): WalletBalance
     {
-        return $wallet->balance ?? WalletBalance::create([
+        $balance = $wallet->balance ?? WalletBalance::create([
             'wallet_id' => $wallet->id,
             'available_balance' => 0,
             'pending_balance' => 0,
         ]);
+
+        if ($wallet->wallet_address) {
+            $onchainBalance = $this->getOnchainUsdcBalance($wallet->wallet_address);
+            $balance->update([
+                'available_balance' => $onchainBalance,
+            ]);
+        }
+
+        return $balance;
+    }
+
+    public function getOnchainUsdcBalance(string $walletAddress): float
+    {
+        $rpcUrl = env('WALLET_RPC_URL', 'https://rpc.testnet.arc.network');
+        $usdcAddress = env('USDC_ADDRESS', '0x3600000000000000000000000000000000000000');
+
+        if (!$walletAddress || !$usdcAddress) {
+            return 0.0;
+        }
+
+        // balanceOf selector: 70a08231
+        $cleanAddress = ltrim($walletAddress, '0x');
+        $paddedAddress = str_pad(strtolower($cleanAddress), 64, '0', STR_PAD_LEFT);
+        $data = '0x70a08231' . $paddedAddress;
+
+        $payload = [
+            'jsonrpc' => '2.0',
+            'method' => 'eth_call',
+            'params' => [
+                [
+                    'to' => $usdcAddress,
+                    'data' => $data
+                ],
+                'latest'
+            ],
+            'id' => 1
+        ];
+
+        try {
+            $ch = curl_init($rpcUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            if (!$response) {
+                return 0.0;
+            }
+
+            $json = json_decode($response, true);
+            if (isset($json['result'])) {
+                $hexVal = ltrim($json['result'], '0x');
+                if (empty($hexVal) || $hexVal === '0') {
+                    return 0.0;
+                }
+                
+                if (function_exists('gmp_init')) {
+                    $decVal = gmp_strval(gmp_init($hexVal, 16));
+                } else {
+                    $decVal = hexdec($hexVal);
+                }
+                return (float) ($decVal / 1000000);
+            }
+        } catch (\Throwable $e) {
+            // Fallback
+        }
+
+        return 0.0;
     }
 
     /**
