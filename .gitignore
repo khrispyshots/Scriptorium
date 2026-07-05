@@ -1,0 +1,73 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+backend/.env
+contracts/.env
+frontend/.env
+frontend/.env.*
+backend/.env.*
+contracts/.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+
+# Markdown docs are intentionally excluded from this production push
+*.md
+**/*.md
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/vendor/
+contracts/node_modules/
+
+# Build output
+frontend/dist/
+backend/public/build/
+backend/public/hot
+contracts/artifacts/
+contracts/cache/
+contracts/coverage/
+contracts/coverage.json
+contracts/typechain-types/
+
+# Laravel generated/runtime files
+backend/storage/logs/*.log
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/testing/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*.php
+backend/database/database.sqlite
+backend/database/*.sqlite
+backend/database/*.sqlite-*
+
+# Keep Laravel runtime directories present when intentionally added
+!backend/storage/framework/cache/.gitignore
+!backend/storage/framework/sessions/.gitignore
+!backend/storage/framework/testing/.gitignore
+!backend/storage/framework/views/.gitignore
+
+# Local editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tooling caches
+.phpunit.cache/
+.eslintcache
+.vite/
+.turbo/

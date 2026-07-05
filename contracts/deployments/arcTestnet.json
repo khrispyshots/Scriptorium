@@ -1,0 +1,19 @@
+{
+  "network": "Arc Testnet",
+  "chainId": 5042002,
+  "currencySymbol": "USDC",
+  "explorerUrl": "https://testnet.arcscan.app",
+  "contracts": {
+    "ScriptoriumSplitRouter": {
+      "address": "0xe998637d022b86E7e82Bd44870bf7DD58af9cEfD",
+      "constructorArgs": {
+        "usdc": "0x3600000000000000000000000000000000000000",
+        "platformTreasury": "0x7a72589852214EC9f56d1dC39d4AEbc21916d62E",
+        "platformFeeBps": 500,
+        "referralFeeBps": 200
+      },
+      "verified": true,
+      "verifiedUrl": "https://testnet.arcscan.app/address/0xe998637d022b86E7e82Bd44870bf7DD58af9cEfD#code"
+    }
+  }
+}
